@@ -1,0 +1,1844 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ValoRandom // Randomizer Đặc Vụ & Kho Đồ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        rbx: {
+                            bg: '#111216',
+                            topbar: '#191B1F',
+                            card: '#232527',
+                            surface: '#2B2D31',
+                            border: '#393B3D',
+                            hover: '#323438',
+                            blue: '#00A2FF',
+                            blueDark: '#0074B8',
+                            green: '#00B06F',
+                            greenDark: '#007A4D',
+                            gold: '#F5CD30',
+                            purple: '#A855F7',
+                            red: '#F44336',
+                            text: '#FFFFFF',
+                            muted: '#BDBEC0'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        badge: ['Fredoka', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #111216;
+            color: #FFFFFF;
+            /* Họa tiết đinh tán Roblox (Stud pattern) tinh tế */
+            background-image: radial-gradient(rgba(255, 255, 255, 0.045) 2px, transparent 2px);
+            background-size: 24px 24px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Hiệu ứng nút bấm 3D đặc trưng của Roblox */
+        .rbx-btn-green {
+            background-color: #00B06F;
+            box-shadow: 0 4px 0 #007A4D;
+            transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.15s ease;
+        }
+        .rbx-btn-green:hover {
+            background-color: #00C27A;
+        }
+        .rbx-btn-green:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0 #007A4D;
+        }
+
+        .rbx-btn-blue {
+            background-color: #00A2FF;
+            box-shadow: 0 4px 0 #0074B8;
+            transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.15s ease;
+        }
+        .rbx-btn-blue:hover {
+            background-color: #19ACFF;
+        }
+        .rbx-btn-blue:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0 #0074B8;
+        }
+
+        .rbx-btn-neutral {
+            background-color: #2B2D31;
+            border: 1px solid #393B3D;
+            box-shadow: 0 3px 0 #191B1F;
+            transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.15s ease;
+        }
+        .rbx-btn-neutral:hover {
+            background-color: #35383D;
+        }
+        .rbx-btn-neutral:active {
+            transform: translateY(3px);
+            box-shadow: 0 0px 0 #191B1F;
+        }
+
+        /* Custom Scrollbar gọn gàng chuẩn Roblox */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #191B1F;
+            border-radius: 99px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #393B3D;
+            border-radius: 99px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #55585C;
+        }
+
+        /* Hiệu ứng nảy Pop khi quay trúng vật phẩm */
+        @keyframes rbxPop {
+            0% { transform: scale(0.95); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+        .pop-reveal {
+            animation: rbxPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes rbxShake {
+            0%, 100% { transform: rotate(0deg) scale(0.99); }
+            25% { transform: rotate(-1deg) scale(1.01); }
+            75% { transform: rotate(1deg) scale(1.01); }
+        }
+        .rolling-card {
+            animation: rbxShake 0.12s infinite;
+            border-color: #00A2FF !important;
+        }
+
+        /* Toggle Switch chuẩn Roblox Settings */
+        .rbx-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background-color: #393B3D;
+            border-radius: 999px;
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .rbx-switch.active {
+            background-color: #00B06F;
+        }
+        .rbx-switch-knob {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 18px;
+            height: 18px;
+            background-color: #FFFFFF;
+            border-radius: 50%;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        }
+        .rbx-switch.active .rbx-switch-knob {
+            transform: translateX(20px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-rbx-blue selection:text-white">
+
+    <!-- ROBLOX TOP HUD NAVBAR -->
+    <header class="bg-rbx-topbar border-b border-rbx-border sticky top-0 z-40 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+            
+            <!-- Brand Logo (Roblox Tilted Square Icon) -->
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-rbx-blue flex items-center justify-center shadow-inner relative">
+                    <!-- Biểu tượng ô vuông nghiêng đặc trưng -->
+                    <div class="w-5 h-5 border-[3.5px] border-white rounded-[3px] transform rotate-12 flex items-center justify-center">
+                        <div class="w-1.5 h-1.5 bg-white rounded-[1px]"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="font-badge font-bold text-lg sm:text-xl tracking-wide text-white leading-none">ValoRandom</span>
+                        <span class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-md bg-rbx-surface text-rbx-muted border border-rbx-border">v2.8</span>
+                    </div>
+                    <p class="text-[11px] text-rbx-muted font-medium hidden sm:block">Randomizer Đặc Vụ & Kho Trang Bị</p>
+                </div>
+            </div>
+
+            <!-- Center View Mode Pills (Responsive Navigation) -->
+            <nav class="hidden md:flex items-center bg-rbx-bg p-1 rounded-xl border border-rbx-border">
+                <button onclick="setViewTab('all')" data-view="all" class="view-pill px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-rbx-surface text-white shadow-sm">
+                    Tất Cả (All-in-One)
+                </button>
+                <button onclick="setViewTab('agent')" data-view="agent" class="view-pill px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-rbx-muted hover:text-white">
+                    Chọn Đặc Vụ
+                </button>
+                <button onclick="setViewTab('shop')" data-view="shop" class="view-pill px-4 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-rbx-muted hover:text-white">
+                    Cửa Hàng Súng
+                </button>
+            </nav>
+
+            <!-- Right Controls: Balance Pill + Master Roll + Sound -->
+            <div class="flex items-center gap-2.5">
+                <!-- Robux-style Credits Pill -->
+                <div class="hidden sm:flex items-center gap-1.5 bg-rbx-bg border border-rbx-border px-3 py-1.5 rounded-full">
+                    <span class="w-4 h-4 rounded-full bg-rbx-green/20 border border-rbx-green text-rbx-green flex items-center justify-center text-[10px] font-extrabold">¤</span>
+                    <span id="navCreditsDisplay" class="text-xs font-extrabold text-white">4,500</span>
+                </div>
+
+                <!-- Master Spin Button -->
+                <button id="btnRollAll" onclick="rollAll()" class="rbx-btn-green text-white font-bold text-xs sm:text-sm px-4 py-2 rounded-xl flex items-center gap-2 cursor-pointer mb-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    <span>QUAY TẤT CẢ</span>
+                </button>
+
+                <!-- Sound Toggle -->
+                <button id="btnSoundToggle" onclick="toggleSound()" title="Bật/Tắt âm thanh" class="w-9 h-9 rounded-xl bg-rbx-surface hover:bg-rbx-hover border border-rbx-border flex items-center justify-center text-white transition cursor-pointer">
+                    <svg id="iconSoundOn" class="w-4 h-4 text-rbx-green" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                    <svg id="iconSoundOff" class="w-4 h-4 text-rbx-muted hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Toast Notification Container (Roblox Badge Popups) -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
+
+        <!-- Mobile View Switcher -->
+        <div class="flex md:hidden items-center bg-rbx-topbar p-1 rounded-xl border border-rbx-border mb-5">
+            <button onclick="setViewTab('all')" data-view="all" class="view-pill flex-1 py-2 rounded-lg text-xs font-bold transition cursor-pointer bg-rbx-surface text-white">Tất Cả</button>
+            <button onclick="setViewTab('agent')" data-view="agent" class="view-pill flex-1 py-2 rounded-lg text-xs font-bold transition cursor-pointer text-rbx-muted">Đặc Vụ</button>
+            <button onclick="setViewTab('shop')" data-view="shop" class="view-pill flex-1 py-2 rounded-lg text-xs font-bold transition cursor-pointer text-rbx-muted">Cửa Hàng</button>
+        </div>
+
+        <div id="mainGridContainer" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- ========================================================= -->
+            <!-- LEFT PANEL: CHARACTER SELECT (AGENT RANDOMIZER)           -->
+            <!-- ========================================================= -->
+            <section id="panelAgent" class="lg:col-span-7 flex flex-col gap-5">
+                <div class="bg-rbx-card border border-rbx-border rounded-2xl p-5 sm:p-6 shadow-xl">
+                    
+                    <!-- Panel Header -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-rbx-blue/15 border border-rbx-blue/30 flex items-center justify-center text-rbx-blue">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            </div>
+                            <div>
+                                <h2 class="font-bold text-base sm:text-lg text-white leading-tight">Chọn Nhân Vật (Character Select)</h2>
+                                <p class="text-xs text-rbx-muted">Quay ngẫu nhiên trong danh sách 28 đặc vụ</p>
+                            </div>
+                        </div>
+                        <span id="agentPoolCounter" class="text-xs font-bold bg-rbx-topbar px-3 py-1.5 rounded-full border border-rbx-border text-rbx-muted">
+                            Sẵn sàng: <strong class="text-rbx-green">28/28</strong>
+                        </span>
+                    </div>
+
+                    <!-- Roblox "Item / Character Unlocked" Showcase Card -->
+                    <div id="agentDisplayBox" class="bg-rbx-topbar border-2 border-rbx-border rounded-2xl overflow-hidden mb-5 transition-all">
+                        <!-- Top Rarity Glow Bar -->
+                        <div id="agentRarityBar" class="h-2 w-full bg-rbx-blue transition-colors duration-300"></div>
+                        
+                        <div class="p-5 sm:p-6 flex flex-col sm:flex-row items-center sm:items-start gap-5">
+                            <!-- Blocky Avatar Frame -->
+                            <div id="resAgentAvatarBox" class="w-24 h-24 rounded-2xl bg-rbx-surface border-2 border-rbx-border flex flex-col items-center justify-center shrink-0 shadow-inner relative">
+                                <div id="resAgentIconSlot" class="text-rbx-blue">
+                                    <svg class="w-11 h-11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </div>
+                                <span id="resAgentInitials" class="text-[10px] font-badge uppercase tracking-wider text-rbx-muted mt-1">AVATAR</span>
+                            </div>
+
+                            <!-- Character Info -->
+                            <div class="flex-1 text-center sm:text-left">
+                                <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1.5">
+                                    <span id="resAgentRoleBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-rbx-blue/20 text-rbx-blue border border-rbx-blue/30">
+                                        Chưa chọn
+                                    </span>
+                                    <span id="resAgentOrigin" class="text-xs font-semibold text-rbx-muted bg-rbx-surface px-2.5 py-0.5 rounded-full">
+                                        Valorant Protocol
+                                    </span>
+                                </div>
+
+                                <h3 id="resAgentName" class="font-badge text-3xl sm:text-4xl text-white tracking-wide my-1">
+                                    Nhấn Quay Đặc Vụ!
+                                </h3>
+
+                                <p id="resAgentQuote" class="text-xs sm:text-sm text-rbx-muted leading-relaxed mt-1">
+                                    Lọc vai trò hoặc bỏ tích những tướng bạn chưa sở hữu ở kho bên dưới trước khi quay nhé.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Big Tactile Roblox Green Roll Button -->
+                    <button id="btnSpinAgent" onclick="spinAgent()" class="w-full rbx-btn-green text-white font-extrabold text-base py-3.5 rounded-xl mb-6 flex items-center justify-center gap-2.5 cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>QUAY ĐẶC VỤ NGẪU NHIÊN</span>
+                    </button>
+
+                    <!-- Catalog Category Pills (Role Filter) -->
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-2.5">
+                            <span class="text-xs font-bold text-rbx-muted">Danh mục Vai Trò (Role)</span>
+                            <div class="flex items-center gap-2 text-xs font-bold">
+                                <button onclick="toggleAllAgents(true)" class="text-rbx-green hover:underline cursor-pointer">Tích tất cả</button>
+                                <span class="text-rbx-border">•</span>
+                                <button onclick="toggleAllAgents(false)" class="text-rbx-red hover:underline cursor-pointer">Bỏ tích hết</button>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2" id="roleFilterContainer">
+                            <button data-role="ALL" onclick="setRoleFilter('ALL')" class="role-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-rbx-blue text-white transition cursor-pointer shadow-sm">
+                                Tất cả
+                            </button>
+                            <button data-role="Duelist" onclick="setRoleFilter('Duelist')" class="role-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-rbx-surface text-rbx-muted hover:text-white border border-rbx-border transition cursor-pointer">
+                                ⚡ Duelist
+                            </button>
+                            <button data-role="Initiator" onclick="setRoleFilter('Initiator')" class="role-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-rbx-surface text-rbx-muted hover:text-white border border-rbx-border transition cursor-pointer">
+                                👁️ Initiator
+                            </button>
+                            <button data-role="Controller" onclick="setRoleFilter('Controller')" class="role-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-rbx-surface text-rbx-muted hover:text-white border border-rbx-border transition cursor-pointer">
+                                🌐 Controller
+                            </button>
+                            <button data-role="Sentinel" onclick="setRoleFilter('Sentinel')" class="role-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-rbx-surface text-rbx-muted hover:text-white border border-rbx-border transition cursor-pointer">
+                                🛡️ Sentinel
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Roblox Inventory Checklist Grid -->
+                    <div class="bg-rbx-topbar border border-rbx-border rounded-xl p-3">
+                        <p class="text-[11px] text-rbx-muted mb-2.5 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-rbx-green inline-block"></span>
+                            <span>Kho đặc vụ sở hữu (Nhấn để tích chọn hoặc loại bỏ khỏi vòng quay):</span>
+                        </p>
+                        <div id="agentRosterGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-[270px] overflow-y-auto pr-1">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================= -->
+            <!-- RIGHT PANEL: SHOP & HOTBAR LOADOUT (WEAPON RANDOMIZER)    -->
+            <!-- ========================================================= -->
+            <section id="panelShop" class="lg:col-span-5 flex flex-col gap-5">
+                <div class="bg-rbx-card border border-rbx-border rounded-2xl p-5 sm:p-6 shadow-xl">
+                    
+                    <!-- Panel Header -->
+                    <div class="flex items-center justify-between gap-2 mb-5">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-rbx-green/15 border border-rbx-green/30 flex items-center justify-center text-rbx-green">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                            </div>
+                            <div>
+                                <h2 class="font-bold text-base sm:text-lg text-white leading-tight">Cửa Hàng Trang Bị (Buy Menu)</h2>
+                                <p class="text-xs text-rbx-muted">Tự động phối Súng & Giáp vừa túi tiền</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Currency Input Box -->
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label for="creditsInput" class="text-xs font-bold text-rbx-muted">Ngân sách hiện có (Credits)</label>
+                            <span class="text-[11px] font-semibold text-rbx-muted">Tối đa: 9,000 ¤</span>
+                        </div>
+                        <div class="relative flex items-center">
+                            <div class="absolute left-3.5 w-6 h-6 rounded-full bg-rbx-green/20 border border-rbx-green text-rbx-green flex items-center justify-center text-xs font-extrabold">¤</div>
+                            <input type="number" id="creditsInput" value="4500" min="0" max="9000" step="50"
+                                oninput="syncNavCredits()"
+                                onchange="validateCredits()"
+                                class="w-full bg-rbx-topbar border-2 border-rbx-border focus:border-rbx-blue focus:outline-none text-white font-extrabold text-xl pl-12 pr-20 py-2.5 rounded-xl transition">
+                            <span class="absolute right-3.5 text-xs font-bold text-rbx-muted bg-rbx-surface px-2 py-1 rounded-md">CREDITS</span>
+                        </div>
+
+                        <!-- Economy Preset Chips (6 presets) -->
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 mt-2.5">
+                            <button onclick="setCredits(800)" class="rbx-btn-neutral py-1.5 px-1 rounded-lg text-center cursor-pointer">
+                                <div class="text-[10px] text-rbx-muted font-semibold">Pistol</div>
+                                <div class="font-extrabold text-xs text-white">800</div>
+                            </button>
+                            <button onclick="setCredits(1900)" class="rbx-btn-neutral py-1.5 px-1 rounded-lg text-center cursor-pointer">
+                                <div class="text-[10px] text-rbx-muted font-semibold">Eco</div>
+                                <div class="font-extrabold text-xs text-white">1,900</div>
+                            </button>
+                            <button onclick="setCredits(3200)" class="rbx-btn-neutral py-1.5 px-1 rounded-lg text-center cursor-pointer">
+                                <div class="text-[10px] text-rbx-muted font-semibold">Half</div>
+                                <div class="font-extrabold text-xs text-white">3,200</div>
+                            </button>
+                            <button onclick="setCredits(3900)" class="rbx-btn-neutral py-1.5 px-1 rounded-lg text-center cursor-pointer">
+                                <div class="text-[10px] text-rbx-muted font-semibold">Full</div>
+                                <div class="font-extrabold text-xs text-rbx-green">3,900</div>
+                            </button>
+                            <button onclick="setCredits(5000)" class="rbx-btn-neutral py-1.5 px-1 rounded-lg text-center cursor-pointer">
+                                <div class="text-[10px] text-rbx-muted font-semibold">Rich</div>
+                                <div class="font-extrabold text-xs text-rbx-gold">5,000</div>
+                            </button>
+                            <button onclick="setCredits(9000)" class="rbx-btn-neutral py-1.5 px-1 rounded-lg text-center cursor-pointer">
+                                <div class="text-[10px] text-rbx-muted font-semibold">Max</div>
+                                <div class="font-extrabold text-xs text-rbx-blue">9,000</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Roblox Settings-style Toggle Switches -->
+                    <div class="bg-rbx-topbar border border-rbx-border rounded-xl p-3.5 space-y-3 mb-5">
+                        <!-- Toggle 1: Smart Economy vs Chaos -->
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <div class="text-xs font-bold text-white">Mua Tối Ưu Tiền (Smart Economy)</div>
+                                <div id="smartModeDesc" class="text-[11px] text-rbx-muted">Ưu tiên súng mạnh nhất & tiêu tối đa tiền dư (Tắt = Chaos RNG)</div>
+                            </div>
+                            <button type="button" id="toggleSmartBuy" onclick="toggleSwitch('smart')" class="rbx-switch active" aria-label="Smart Economy">
+                                <span class="rbx-switch-knob"></span>
+                            </button>
+                        </div>
+
+                        <div class="h-[1px] bg-rbx-border w-full"></div>
+
+                        <!-- Toggle 2: Include Shields -->
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <div class="text-xs font-bold text-white">Tự Động Mua Giáp (Include Shields)</div>
+                                <div class="text-[11px] text-rbx-muted">Bao gồm Light, Regen hoặc Heavy Shields</div>
+                            </div>
+                            <button type="button" id="toggleShields" onclick="toggleSwitch('shield')" class="rbx-switch active" aria-label="Include Shields">
+                                <span class="rbx-switch-knob"></span>
+                            </button>
+                        </div>
+
+                        <div class="h-[1px] bg-rbx-border w-full"></div>
+
+                        <!-- Toggle 3: Random Abilities with Leftover Credits -->
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <div class="text-xs font-bold text-white flex items-center gap-1.5">
+                                    <span>Random Mua Chiêu Bằng Tiền Dư</span>
+                                    <span class="text-[10px] font-extrabold px-1.5 py-0.2 bg-rbx-purple/20 text-rbx-purple rounded">NEW</span>
+                                </div>
+                                <div class="text-[11px] text-rbx-muted">Tự động mua chiêu [C], [Q], [E] của đặc vụ đang chọn</div>
+                            </div>
+                            <button type="button" id="toggleAbilities" onclick="toggleSwitch('ability')" class="rbx-switch active" aria-label="Include Abilities">
+                                <span class="rbx-switch-knob"></span>
+                            </button>
+                        </div>
+
+                        <!-- Active Agent Sync Selector inside Shop -->
+                        <div class="pt-1">
+                            <div class="flex items-center justify-between bg-rbx-surface border border-rbx-border rounded-lg px-3 py-2">
+                                <span class="text-[11px] font-bold text-rbx-muted">Bộ chiêu của đặc vụ:</span>
+                                <select id="shopAgentSelect" onchange="onShopAgentChange()" class="bg-rbx-bg text-white text-xs font-extrabold px-2.5 py-1 rounded-md border border-rbx-border focus:border-rbx-blue focus:outline-none cursor-pointer">
+                                    <!-- Populated by JS -->
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons: Full Loadout Roll & Re-roll Abilities Only -->
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 mb-5">
+                        <button id="btnSpinLoadout" onclick="spinLoadout()" class="sm:col-span-7 rbx-btn-blue text-white font-extrabold text-sm sm:text-base py-3.5 px-3 rounded-xl flex items-center justify-center gap-2 cursor-pointer">
+                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            <span>RANDOM SÚNG & CHIÊU</span>
+                        </button>
+                        <button id="btnRerollAbilities" onclick="rerollAbilitiesOnly()" title="Giữ nguyên Súng & Giáp, chỉ quay lại Chiêu bằng tiền dư" class="sm:col-span-5 rbx-btn-neutral text-white font-bold text-xs sm:text-sm py-3.5 px-3 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer">
+                            <svg class="w-4 h-4 text-rbx-purple shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            <span>Quay Lại Chiêu</span>
+                        </button>
+                    </div>
+
+                    <!-- ROBLOX 6-SLOT BACKPACK / HOTBAR LOADOUT GRID -->
+                    <div id="loadoutDisplayBox" class="bg-rbx-topbar border-2 border-rbx-border rounded-2xl p-4 transition-all">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold text-rbx-muted uppercase tracking-wider">Thanh Trang Bị (6-Slot Hotbar)</span>
+                            <span id="loadoutTierTag" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rbx-surface text-rbx-muted">Sẵn sàng</span>
+                        </div>
+
+                        <!-- Row 1: Weapons & Armor [1] [2] [3] -->
+                        <div class="grid grid-cols-3 gap-2 mb-2">
+                            <!-- Slot 1: Primary Weapon -->
+                            <div id="slotPrimaryCard" class="bg-rbx-surface border-2 border-rbx-border rounded-xl p-2.5 relative flex flex-col justify-between min-h-[96px] transition-colors">
+                                <div class="flex items-center justify-between">
+                                    <span class="w-5 h-5 rounded-md bg-rbx-bg text-rbx-muted font-extrabold text-[11px] flex items-center justify-center border border-rbx-border">1</span>
+                                    <span class="text-[10px] font-bold text-rbx-muted uppercase">Chính</span>
+                                </div>
+                                <div class="my-1 text-center">
+                                    <div id="resPrimaryName" class="font-extrabold text-sm text-white leading-tight truncate">---</div>
+                                    <div id="resPrimaryCat" class="text-[10px] text-rbx-muted truncate">Primary</div>
+                                </div>
+                                <div class="text-center">
+                                    <span id="resPrimaryPrice" class="inline-block text-[11px] font-extrabold text-rbx-green bg-rbx-bg px-2 py-0.5 rounded-full">0 ¤</span>
+                                </div>
+                            </div>
+
+                            <!-- Slot 2: Sidearm -->
+                            <div id="slotSidearmCard" class="bg-rbx-surface border-2 border-rbx-border rounded-xl p-2.5 relative flex flex-col justify-between min-h-[96px] transition-colors">
+                                <div class="flex items-center justify-between">
+                                    <span class="w-5 h-5 rounded-md bg-rbx-bg text-rbx-muted font-extrabold text-[11px] flex items-center justify-center border border-rbx-border">2</span>
+                                    <span class="text-[10px] font-bold text-rbx-muted uppercase">Lục</span>
+                                </div>
+                                <div class="my-1 text-center">
+                                    <div id="resSidearmName" class="font-extrabold text-sm text-white leading-tight truncate">Classic</div>
+                                    <div class="text-[10px] text-rbx-muted truncate">Sidearm</div>
+                                </div>
+                                <div class="text-center">
+                                    <span id="resSidearmPrice" class="inline-block text-[11px] font-extrabold text-rbx-green bg-rbx-bg px-2 py-0.5 rounded-full">0 ¤</span>
+                                </div>
+                            </div>
+
+                            <!-- Slot 3: Armor / Shield -->
+                            <div id="slotArmorCard" class="bg-rbx-surface border-2 border-rbx-border rounded-xl p-2.5 relative flex flex-col justify-between min-h-[96px] transition-colors">
+                                <div class="flex items-center justify-between">
+                                    <span class="w-5 h-5 rounded-md bg-rbx-bg text-rbx-muted font-extrabold text-[11px] flex items-center justify-center border border-rbx-border">3</span>
+                                    <span class="text-[10px] font-bold text-rbx-muted uppercase">Giáp</span>
+                                </div>
+                                <div class="my-1 text-center">
+                                    <div id="resShieldName" class="font-extrabold text-sm text-white leading-tight truncate">---</div>
+                                    <div id="resShieldSub" class="text-[10px] text-rbx-muted truncate">Armor</div>
+                                </div>
+                                <div class="text-center">
+                                    <span id="resShieldPrice" class="inline-block text-[11px] font-extrabold text-rbx-blue bg-rbx-bg px-2 py-0.5 rounded-full">0 ¤</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Agent Abilities [4: C] [5: Q] [6: E] -->
+                        <div class="grid grid-cols-3 gap-2 mb-3.5">
+                            <!-- Slot 4: Ability C -->
+                            <div id="slotAbilityCCard" class="bg-rbx-surface border-2 border-rbx-border rounded-xl p-2.5 relative flex flex-col justify-between min-h-[98px] transition-colors">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-1.5 h-5 rounded-md bg-rbx-bg text-rbx-purple font-extrabold text-[10px] flex items-center justify-center border border-rbx-border">4 • C</span>
+                                    <span id="resAbilityCQty" class="text-[10px] font-extrabold text-rbx-muted">0/2</span>
+                                </div>
+                                <div class="my-1 text-center">
+                                    <div id="resAbilityCName" class="font-extrabold text-xs text-white leading-tight line-clamp-1">Chiêu C</div>
+                                    <div id="resAbilityCUnit" class="text-[10px] text-rbx-muted">0 ¤/lượt</div>
+                                </div>
+                                <div class="text-center">
+                                    <span id="resAbilityCPrice" class="inline-block text-[11px] font-extrabold text-rbx-purple bg-rbx-bg px-2 py-0.5 rounded-full">0 ¤</span>
+                                </div>
+                            </div>
+
+                            <!-- Slot 5: Ability Q -->
+                            <div id="slotAbilityQCard" class="bg-rbx-surface border-2 border-rbx-border rounded-xl p-2.5 relative flex flex-col justify-between min-h-[98px] transition-colors">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-1.5 h-5 rounded-md bg-rbx-bg text-rbx-purple font-extrabold text-[10px] flex items-center justify-center border border-rbx-border">5 • Q</span>
+                                    <span id="resAbilityQQty" class="text-[10px] font-extrabold text-rbx-muted">0/2</span>
+                                </div>
+                                <div class="my-1 text-center">
+                                    <div id="resAbilityQName" class="font-extrabold text-xs text-white leading-tight line-clamp-1">Chiêu Q</div>
+                                    <div id="resAbilityQUnit" class="text-[10px] text-rbx-muted">0 ¤/lượt</div>
+                                </div>
+                                <div class="text-center">
+                                    <span id="resAbilityQPrice" class="inline-block text-[11px] font-extrabold text-rbx-purple bg-rbx-bg px-2 py-0.5 rounded-full">0 ¤</span>
+                                </div>
+                            </div>
+
+                            <!-- Slot 6: Ability E (Signature) -->
+                            <div id="slotAbilityECard" class="bg-rbx-surface border-2 border-rbx-border rounded-xl p-2.5 relative flex flex-col justify-between min-h-[98px] transition-colors">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-1.5 h-5 rounded-md bg-rbx-bg text-rbx-gold font-extrabold text-[10px] flex items-center justify-center border border-rbx-border">6 • E</span>
+                                    <span id="resAbilityEQty" class="text-[10px] font-extrabold text-rbx-muted">1/1</span>
+                                </div>
+                                <div class="my-1 text-center">
+                                    <div id="resAbilityEName" class="font-extrabold text-xs text-white leading-tight line-clamp-1">Chiêu E</div>
+                                    <div id="resAbilityEUnit" class="text-[10px] text-rbx-muted">Signature</div>
+                                </div>
+                                <div class="text-center">
+                                    <span id="resAbilityEPrice" class="inline-block text-[11px] font-extrabold text-rbx-gold bg-rbx-bg px-2 py-0.5 rounded-full">FREE</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detailed Economy Breakdown Box -->
+                        <div class="bg-rbx-bg border border-rbx-border rounded-xl p-3 space-y-2 text-xs">
+                            <div class="flex items-center justify-between text-[11px]">
+                                <span class="text-rbx-muted">1. Tiền Súng & Giáp:</span>
+                                <span id="resGearSpent" class="font-bold text-white">0 ¤</span>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px]">
+                                <span class="text-rbx-muted">2. Tiền Dư Sau Mua Súng:</span>
+                                <span id="resAfterGear" class="font-bold text-rbx-blue">0 ¤</span>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px]">
+                                <span class="text-rbx-muted">3. Tiền Mua Chiêu [C/Q/E]:</span>
+                                <span id="resAbilitySpent" class="font-bold text-rbx-purple">0 ¤</span>
+                            </div>
+                            <div class="h-[1px] bg-rbx-border w-full"></div>
+                            <div class="flex items-center justify-between pt-0.5">
+                                <div>
+                                    <span class="text-rbx-muted block text-[10px]">Tổng Đã Tiêu</span>
+                                    <span id="resTotalSpent" class="font-extrabold text-base text-white">0 ¤</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-rbx-muted block text-[10px]">Dư Cuối Cùng</span>
+                                    <span id="resRemaining" class="font-extrabold text-base text-rbx-green">0 ¤</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- BOTTOM SECTION: ROBLOX ACTIVITY / CONSOLE FEED            -->
+        <!-- ========================================================= -->
+        <section class="mt-6 bg-rbx-card border border-rbx-border rounded-2xl p-5 sm:p-6 shadow-xl">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-7 h-7 rounded-lg bg-rbx-surface border border-rbx-border flex items-center justify-center text-rbx-gold">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <h2 class="font-bold text-base text-white">Nhật Ký Quay (Activity Feed)</h2>
+                </div>
+                <button onclick="clearHistory()" class="text-xs font-bold text-rbx-muted hover:text-rbx-red bg-rbx-surface hover:bg-rbx-hover px-3 py-1.5 rounded-lg border border-rbx-border transition cursor-pointer">
+                    Xóa nhật ký
+                </button>
+            </div>
+
+            <div id="historyList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div class="col-span-full text-center py-6 text-xs text-rbx-muted bg-rbx-topbar rounded-xl border border-rbx-border">
+                    Chưa có hoạt động nào. Nhấn nút quay màu xanh phía trên để bắt đầu!
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-rbx-border bg-rbx-topbar py-4 mt-8 text-center text-xs text-rbx-muted">
+        <p>ValoRandom • Giao diện lấy cảm hứng từ Roblox Studio • Dữ liệu chuẩn xác 28 Đặc vụ Valorant</p>
+    </footer>
+
+    <script>
+        // ==========================================
+        // 1. DỮ LIỆU ĐẦY ĐỦ 28 ĐẶC VỤ (GỒM CHIÊU C, Q, E) & VŨ KHÍ
+        // ==========================================
+        const AGENTS = [
+            // Duelists (9)
+            {
+                id: 'jett', name: 'Jett', role: 'Duelist', origin: 'Hàn Quốc',
+                quote: '"Coi chừng nhé, tôi bay qua đầu các người bây giờ đấy!"',
+                abilities: [
+                    { key: 'C', name: 'Cloudburst', cost: 200, max: 2, free: 0 },
+                    { key: 'Q', name: 'Updraft', cost: 150, max: 1, free: 0 },
+                    { key: 'E', name: 'Tailwind', cost: 0, max: 1, free: 1 }
+                ]
+            },
+            {
+                id: 'reyna', name: 'Reyna', role: 'Duelist', origin: 'Mexico',
+                quote: '"Chúng sẽ phải quỳ gối trước sức mạnh của ta."',
+                abilities: [
+                    { key: 'C', name: 'Leer', cost: 250, max: 2, free: 0 },
+                    { key: 'Q', name: 'Devour', cost: 200, max: 2, free: 1 },
+                    { key: 'E', name: 'Dismiss', cost: 200, max: 2, free: 1 }
+                ]
+            },
+            {
+                id: 'raze', name: 'Raze', role: 'Duelist', origin: 'Brazil',
+                quote: '"Lửa trong lỗ! Chuẩn bị tận hưởng bữa tiệc pháo hoa nào!"',
+                abilities: [
+                    { key: 'C', name: 'Boom Bot', cost: 300, max: 1, free: 0 },
+                    { key: 'Q', name: 'Blast Pack', cost: 200, max: 2, free: 0 },
+                    { key: 'E', name: 'Paint Shells', cost: 0, max: 1, free: 1 }
+                ]
+            },
+            {
+                id: 'phoenix', name: 'Phoenix', role: 'Duelist', origin: 'Anh Quốc',
+                quote: '"Tránh ra nào, đừng để bị bỏng bởi ánh hào quang của tôi."',
+                abilities: [
+                    { key: 'C', name: 'Blaze', cost: 150, max: 1, free: 0 },
+                    { key: 'Q', name: 'Hot Hands', cost: 200, max: 1, free: 0 },
+                    { key: 'E', name: 'Curveball', cost: 250, max: 2, free: 1 }
+                ]
+            },
+            {
+                id: 'yoru', name: 'Yoru', role: 'Duelist', origin: 'Nhật Bản',
+                quote: '"Ta sẽ xé toạc không gian và đánh gục chúng từ phía sau."',
+                abilities: [
+                    { key: 'C', name: 'Fakeout', cost: 100, max: 1, free: 0 },
+                    { key: 'Q', name: 'Blindside', cost: 250, max: 2, free: 0 },
+                    { key: 'E', name: 'Gatecrash', cost: 150, max: 2, free: 1 }
+                ]
+            },
+            {
+                id: 'neon', name: 'Neon', role: 'Duelist', origin: 'Philippines',
+                quote: '"Nhanh lên nào! Tôi không có thời gian để đi bộ đâu."',
+                abilities: [
+                    { key: 'C', name: 'Fast Lane', cost: 300, max: 1, free: 0 },
+                    { key: 'Q', name: 'Relay Bolt', cost: 200, max: 1, free: 0 },
+                    { key: 'E', name: 'High Gear', cost: 0, max: 1, free: 1 }
+                ]
+            },
+            {
+                id: 'iso', name: 'Iso', role: 'Duelist', origin: 'Trung Quốc',
+                quote: '"Một đấu một. Không trốn chạy, chỉ có kẻ sống sót."',
+                abilities: [
+                    { key: 'C', name: 'Contingency', cost: 250, max: 1, free: 0 },
+                    { key: 'Q', name: 'Undercut', cost: 200, max: 2, free: 0 },
+                    { key: 'E', name: 'Double Tap', cost: 0, max: 1, free: 1 }
+                ]
+            },
+            {
+                id: 'waylay', name: 'Waylay', role: 'Duelist', origin: 'Thái Lan',
+                quote: '"Ánh sáng khúc xạ, tốc độ vượt qua mọi ranh giới."',
+                abilities: [
+                    { key: 'C', name: 'Saturate', cost: 300, max: 1, free: 0 },
+                    { key: 'Q', name: 'Lightspeed', cost: 300, max: 1, free: 0 },
+                    { key: 'E', name: 'Refract', cost: 0, max: 1, free: 1 }
+                ]
+            },
+            {
+                id: 'hush', name: 'Hush', role: 'Duelist', origin: 'Trung Quốc',
+                quote: '"Siêu năng ngoại cảm sẽ bẻ cong quỹ đạo của mọi cuộc giao tranh."',
+                abilities: [
+                    { key: 'C', name: 'Mind Veil', cost: 200, max: 2, free: 0 },
+                    { key: 'Q', name: 'Psi Pulse', cost: 250, max: 2, free: 0 },
+                    { key: 'E', name: 'Phantom Shift', cost: 0, max: 1, free: 1 }
+                ]
+            },
+
+            // Initiators (7)
+            {
+                id: 'sova', name: 'Sova', role: 'Initiator', origin: 'Nga',
+                quote: '"Dù chúng trốn ở đâu, mũi tên của tôi cũng sẽ tìm thấy."',
+                abilities: [
+                    { key: 'C', name: 'Owl Drone', cost: 400, max: 1, free: 0 },
+                    { key: 'Q', name: 'Shock Bolt', cost: 150, max: 2, free: 0 },
+                    { key: 'E', name: 'Recon Bolt', cost: 0, max: 1, free: 1 }
+                ]
+            },
+            {
+                id: 'breach', name: 'Breach', role: 'Initiator', origin: 'Thụy Điển',
+                quote: '"Đứng sau tường cũng vô ích thôi, chuẩn bị rung chuyển đi!"',
+                abilities: [
+                    { key: 'C', name: 'Aftershock', cost: 200, max: 1, free: 0 },
+                    { key: 'Q', name: 'Flashpoint', cost: 250, max: 2, free: 0 },
+                    { key: 'E', name: 'Fault Line', cost: 0, max: 1, free: 1 }
+                ]
+            },
+            {
+                id: 'skye', name: 'Skye', role: 'Initiator', origin: 'Úc',
+                quote: '"Bầy thú đã sẵn sàng săn mồi. Tiến lên nào cả đội!"',
+                abilities: [
+                    { key: 'C', name: 'Regrowth', cost: 150, max: 1, free: 0 },
+                    { key: 'Q', name: 'Trailblazer', cost: 300, max: 1, free: 0 },
+                    { key: 'E', name: 'Guiding Light', cost: 250, max: 2, free: 1 }
+                ]
+            },
+            {
+                id: 'kayo', name: 'KAY/O', role: 'Initiator', origin: 'Dòng thời gian khác',
+                quote: '"Hệ thống khởi động. Vô hiệu hóa toàn bộ kỹ năng địch."',
+                abilities: [
+                    { key: 'C', name: 'FRAG/ment', cost: 200, max: 1, free: 0 },
+                    { key: 'Q', name: 'FLASH/drive', cost: 250, max: 2, free: 0 },
+                    { key: 'E', name: 'ZERO/point', cost: 0, max: 1, free: 1 }
+                ]
+            },
+            {
+                id: 'fade', name: 'Fade', role: 'Initiator', origin: 'Thổ Nhĩ Kỳ',
+                quote: '"Nỗi sợ hãi sẽ phơi bày mọi bí mật đen tối nhất của ngươi."',
+                abilities: [
+                    { key: 'C', name: 'Prowler', cost: 250, max: 2, free: 0 },
+                    { key: 'Q', name: 'Seize', cost: 200, max: 1, free: 0 },
+                    { key: 'E', name: 'Haunt', cost: 0, max: 1, free: 1 }
+                ]
+            },
+            {
+                id: 'gekko', name: 'Gekko', role: 'Initiator', origin: 'Hoa Kỳ',
+                quote: '"Wingman, Dizzy, Thrash — đến giờ quẩy rồi mấy đứa ơi!"',
+                abilities: [
+                    { key: 'C', name: 'Mosh Pit', cost: 250, max: 1, free: 0 },
+                    { key: 'Q', name: 'Wingman', cost: 300, max: 1, free: 0 },
+                    { key: 'E', name: 'Dizzy', cost: 0, max: 1, free: 1 }
+                ]
+            },
+            {
+                id: 'tejo', name: 'Tejo', role: 'Initiator', origin: 'Colombia',
+                quote: '"Mọi vị trí phòng thủ đều sẽ sụp đổ dưới hỏa lực dẫn đường."',
+                abilities: [
+                    { key: 'C', name: 'Stealth Drone', cost: 400, max: 1, free: 0 },
+                    { key: 'Q', name: 'Special Delivery', cost: 200, max: 1, free: 0 },
+                    { key: 'E', name: 'Guided Salvo', cost: 0, max: 1, free: 1 }
+                ]
+            },
+
+            // Controllers (6)
+            {
+                id: 'brimstone', name: 'Brimstone', role: 'Controller', origin: 'Hoa Kỳ',
+                quote: '"Bầu trời mở lối! Giữ vững đội hình và kiểm soát khu vực."',
+                abilities: [
+                    { key: 'C', name: 'Stim Beacon', cost: 200, max: 1, free: 0 },
+                    { key: 'Q', name: 'Incendiary', cost: 250, max: 1, free: 0 },
+                    { key: 'E', name: 'Sky Smoke', cost: 100, max: 3, free: 1 }
+                ]
+            },
+            {
+                id: 'viper', name: 'Viper', role: 'Controller', origin: 'Hoa Kỳ',
+                quote: '"Chào mừng đến với thế giới độc tố của ta. Đừng nín thở quá lâu."',
+                abilities: [
+                    { key: 'C', name: 'Snake Bite', cost: 300, max: 1, free: 0 },
+                    { key: 'Q', name: 'Poison Cloud', cost: 200, max: 1, free: 0 },
+                    { key: 'E', name: 'Toxic Screen', cost: 0, max: 1, free: 1 }
+                ]
+            },
+            {
+                id: 'omen', name: 'Omen', role: 'Controller', origin: 'Không rõ',
+                quote: '"Bóng tối bao trùm... chúng sẽ không biết cái chết đến từ đâu."',
+                abilities: [
+                    { key: 'C', name: 'Shrouded Step', cost: 100, max: 2, free: 0 },
+                    { key: 'Q', name: 'Paranoia', cost: 250, max: 1, free: 0 },
+                    { key: 'E', name: 'Dark Cover', cost: 150, max: 2, free: 1 }
+                ]
+            },
+            {
+                id: 'astra', name: 'Astra', role: 'Controller', origin: 'Ghana',
+                quote: '"Vũ trụ nằm trong lòng bàn tay ta. Mọi bước đi đều đã được định sẵn."',
+                abilities: [
+                    { key: 'C', name: 'Gravity Well', cost: 0, max: 1, free: 1 },
+                    { key: 'Q', name: 'Nova Pulse', cost: 0, max: 1, free: 1 },
+                    { key: 'E', name: 'Astral Stars', cost: 150, max: 4, free: 1 }
+                ]
+            },
+            {
+                id: 'harbor', name: 'Harbor', role: 'Controller', origin: 'Ấn Độ',
+                quote: '"Thủy triều dâng cao! Cơn sóng này sẽ cuốn phăng tất cả."',
+                abilities: [
+                    { key: 'C', name: 'Cascade', cost: 150, max: 2, free: 0 },
+                    { key: 'Q', name: 'Cove', cost: 350, max: 1, free: 0 },
+                    { key: 'E', name: 'High Tide', cost: 0, max: 1, free: 1 }
+                ]
+            },
+            {
+                id: 'clove', name: 'Clove', role: 'Controller', origin: 'Scotland',
+                quote: '"Chết chưa phải là hết đâu nhé, tôi vẫn còn nhiều trò vui lắm!"',
+                abilities: [
+                    { key: 'C', name: 'Pick-me-up', cost: 200, max: 1, free: 0 },
+                    { key: 'Q', name: 'Meddle', cost: 250, max: 1, free: 0 },
+                    { key: 'E', name: 'Ruse', cost: 150, max: 2, free: 1 }
+                ]
+            },
+
+            // Sentinels (6)
+            {
+                id: 'sage', name: 'Sage', role: 'Sentinel', origin: 'Trung Quốc',
+                quote: '"Tôi vừa là lá chắn, vừa là thanh gươm bảo vệ đồng đội."',
+                abilities: [
+                    { key: 'C', name: 'Barrier Orb', cost: 400, max: 1, free: 0 },
+                    { key: 'Q', name: 'Slow Orb', cost: 200, max: 2, free: 0 },
+                    { key: 'E', name: 'Healing Orb', cost: 0, max: 1, free: 1 }
+                ]
+            },
+            {
+                id: 'cypher', name: 'Cypher', role: 'Sentinel', origin: 'Ma-rốc',
+                quote: '"Không gì qua mắt được camera của ta. Ta biết hết bí mật của ngươi."',
+                abilities: [
+                    { key: 'C', name: 'Trapwire', cost: 200, max: 2, free: 0 },
+                    { key: 'Q', name: 'Cyber Cage', cost: 100, max: 2, free: 0 },
+                    { key: 'E', name: 'Spycam', cost: 0, max: 1, free: 1 }
+                ]
+            },
+            {
+                id: 'killjoy', name: 'Killjoy', role: 'Sentinel', origin: 'Đức',
+                quote: '"Thư giãn đi, các cỗ máy thiên tài của tôi lo liệu hết rồi."',
+                abilities: [
+                    { key: 'C', name: 'Nanoswarm', cost: 200, max: 2, free: 0 },
+                    { key: 'Q', name: 'Alarmbot', cost: 200, max: 1, free: 0 },
+                    { key: 'E', name: 'Turret', cost: 0, max: 1, free: 1 }
+                ]
+            },
+            {
+                id: 'chamber', name: 'Chamber', role: 'Sentinel', origin: 'Pháp',
+                quote: '"Các bạn muốn chơi chứ? Hãy cùng thưởng thức màn trình diễn đẳng cấp."',
+                abilities: [
+                    { key: 'C', name: 'Trademark', cost: 200, max: 1, free: 0 },
+                    { key: 'Q', name: 'Headhunter', cost: 150, max: 8, free: 0 },
+                    { key: 'E', name: 'Rendezvous', cost: 0, max: 1, free: 1 }
+                ]
+            },
+            {
+                id: 'deadlock', name: 'Deadlock', role: 'Sentinel', origin: 'Na Uy',
+                quote: '"Không một kẻ địch nào có thể bước qua lằn ranh tử thần này."',
+                abilities: [
+                    { key: 'C', name: 'GravNet', cost: 200, max: 1, free: 0 },
+                    { key: 'Q', name: 'Sonic Sensor', cost: 200, max: 2, free: 0 },
+                    { key: 'E', name: 'Barrier Mesh', cost: 0, max: 1, free: 1 }
+                ]
+            },
+            {
+                id: 'vyse', name: 'Vyse', role: 'Sentinel', origin: 'Không rõ',
+                quote: '"Kim loại lỏng sẽ trói chặt mọi bước chân của kẻ xâm nhập."',
+                abilities: [
+                    { key: 'C', name: 'Razorvine', cost: 150, max: 2, free: 0 },
+                    { key: 'Q', name: 'Shear', cost: 200, max: 1, free: 0 },
+                    { key: 'E', name: 'Arc Rose', cost: 0, max: 1, free: 1 }
+                ]
+            }
+        ];
+
+        const WEAPONS = [
+            // Sidearms
+            { name: 'Classic', price: 0, category: 'Sidearm', isSidearm: true },
+            { name: 'Shorty', price: 300, category: 'Sidearm', isSidearm: true },
+            { name: 'Frenzy', price: 450, category: 'Sidearm', isSidearm: true },
+            { name: 'Ghost', price: 500, category: 'Sidearm', isSidearm: true },
+            { name: 'Sheriff', price: 800, category: 'Sidearm', isSidearm: true },
+            // SMGs
+            { name: 'Stinger', price: 1100, category: 'SMG', isSidearm: false },
+            { name: 'Spectre', price: 1600, category: 'SMG', isSidearm: false },
+            // Shotguns
+            { name: 'Bucky', price: 850, category: 'Shotgun', isSidearm: false },
+            { name: 'Judge', price: 1850, category: 'Shotgun', isSidearm: false },
+            // Rifles
+            { name: 'Bulldog', price: 2050, category: 'Rifle', isSidearm: false },
+            { name: 'Guardian', price: 2250, category: 'Rifle', isSidearm: false },
+            { name: 'Phantom', price: 2900, category: 'Rifle', isSidearm: false },
+            { name: 'Vandal', price: 2900, category: 'Rifle', isSidearm: false },
+            // Snipers
+            { name: 'Marshal', price: 950, category: 'Sniper', isSidearm: false },
+            { name: 'Outlaw', price: 2400, category: 'Sniper', isSidearm: false },
+            { name: 'Operator', price: 4700, category: 'Sniper', isSidearm: false },
+            // Machine Guns
+            { name: 'Ares', price: 1600, category: 'Heavy', isSidearm: false },
+            { name: 'Odin', price: 3200, category: 'Heavy', isSidearm: false }
+        ];
+
+        const SHIELDS = [
+            { name: 'Không Giáp', sub: '0 Armor', price: 0 },
+            { name: 'Light Shields', sub: '+25 Armor', price: 400 },
+            { name: 'Regen Shield', sub: '+25 Regen', price: 650 },
+            { name: 'Heavy Shields', sub: '+50 Armor', price: 1000 }
+        ];
+
+        // ==========================================
+        // 2. TRẠNG THÁI ỨNG DỤNG (STATE)
+        // ==========================================
+        let excludedAgents = new Set();
+        let currentRoleFilter = 'ALL';
+        let smartBuyEnabled = true;
+        let includeShieldsEnabled = true;
+        let includeAbilitiesEnabled = true;
+        let soundEnabled = true;
+        let isRollingAgent = false;
+        let isRollingLoadout = false;
+        let historyLog = [];
+
+        // Đặc vụ đang active cho khu vực mua chiêu & trạng thái gear hiện tại
+        let selectedAgentId = 'jett';
+        let currentGearState = {
+            budget: 4500,
+            weapon: WEAPONS[0],
+            shield: SHIELDS[0],
+            gearCost: 0
+        };
+
+        // ==========================================
+        // 3. ÂM THANH UI TACTILE ROBLOX POP / CLICK
+        // ==========================================
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playPop(freq = 520, duration = 0.045) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(freq * 1.35, audioCtx.currentTime + duration);
+
+                gain.gain.setValueAtTime(0.14, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {}
+        }
+
+        function playRewardChime() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const notes = [587.33, 739.99, 880.00, 1174.66]; // D5, F#5, A5, D6
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    const startTime = audioCtx.currentTime + idx * 0.05;
+                    osc.frequency.setValueAtTime(freq, startTime);
+
+                    gain.gain.setValueAtTime(0.15, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.24);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.24);
+                });
+            } catch (e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('iconSoundOn').classList.toggle('hidden', !soundEnabled);
+            document.getElementById('iconSoundOff').classList.toggle('hidden', soundEnabled);
+            if (soundEnabled) playPop(700, 0.06);
+            showToast(soundEnabled ? '🔊 Đã bật âm thanh' : '🔇 Đã tắt âm thanh');
+        }
+
+        // ==========================================
+        // 4. ROBLOX BADGE TOAST & VIEW TABS
+        // ==========================================
+        function showToast(message, isError = false) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto px-4 py-3 rounded-xl border text-xs font-bold shadow-2xl transition-all duration-300 transform translate-y-2 opacity-0 flex items-center gap-2 ${
+                isError 
+                ? 'bg-rbx-red text-white border-white/20' 
+                : 'bg-rbx-topbar text-white border-rbx-border'
+            }`;
+            toast.innerHTML = `<span class="w-2 h-2 rounded-full ${isError ? 'bg-white' : 'bg-rbx-green'}"></span><span>${message}</span>`;
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 2400);
+        }
+
+        function setViewTab(view) {
+            playPop(600);
+            document.querySelectorAll('.view-pill').forEach(btn => {
+                if (btn.dataset.view === view) {
+                    btn.classList.add('bg-rbx-surface', 'text-white', 'shadow-sm');
+                    btn.classList.remove('text-rbx-muted');
+                } else {
+                    btn.classList.remove('bg-rbx-surface', 'text-white', 'shadow-sm');
+                    btn.classList.add('text-rbx-muted');
+                }
+            });
+
+            const pAgent = document.getElementById('panelAgent');
+            const pShop = document.getElementById('panelShop');
+
+            if (view === 'all') {
+                pAgent.classList.remove('hidden', 'lg:col-span-12');
+                pAgent.classList.add('lg:col-span-7');
+                pShop.classList.remove('hidden', 'lg:col-span-12');
+                pShop.classList.add('lg:col-span-5');
+            } else if (view === 'agent') {
+                pAgent.classList.remove('hidden', 'lg:col-span-7');
+                pAgent.classList.add('lg:col-span-12');
+                pShop.classList.add('hidden');
+            } else if (view === 'shop') {
+                pShop.classList.remove('hidden', 'lg:col-span-5');
+                pShop.classList.add('lg:col-span-12');
+                pAgent.classList.add('hidden');
+            }
+        }
+
+        // ==========================================
+        // 5. QUẢN LÝ ROLE & KHO ĐẶC VỤ (INVENTORY)
+        // ==========================================
+        function getRoleTheme(role) {
+            switch (role) {
+                case 'Duelist':
+                    return {
+                        bar: 'bg-rbx-red',
+                        badge: 'bg-rbx-red/20 text-rbx-red border-rbx-red/30',
+                        text: 'text-rbx-red',
+                        svg: `<svg class="w-11 h-11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>`
+                    };
+                case 'Initiator':
+                    return {
+                        bar: 'bg-rbx-gold',
+                        badge: 'bg-rbx-gold/20 text-rbx-gold border-rbx-gold/30',
+                        text: 'text-rbx-gold',
+                        svg: `<svg class="w-11 h-11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>`
+                    };
+                case 'Controller':
+                    return {
+                        bar: 'bg-rbx-purple',
+                        badge: 'bg-rbx-purple/20 text-rbx-purple border-rbx-purple/30',
+                        text: 'text-rbx-purple',
+                        svg: `<svg class="w-11 h-11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`
+                    };
+                case 'Sentinel':
+                    return {
+                        bar: 'bg-rbx-green',
+                        badge: 'bg-rbx-green/20 text-rbx-green border-rbx-green/30',
+                        text: 'text-rbx-green',
+                        svg: `<svg class="w-11 h-11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>`
+                    };
+                default:
+                    return { bar: 'bg-rbx-blue', badge: '', text: 'text-rbx-blue', svg: '' };
+            }
+        }
+
+        function setRoleFilter(role) {
+            playPop(580);
+            currentRoleFilter = role;
+
+            document.querySelectorAll('.role-tab').forEach(btn => {
+                if (btn.dataset.role === role) {
+                    btn.classList.remove('bg-rbx-surface', 'text-rbx-muted', 'border-rbx-border');
+                    btn.classList.add('bg-rbx-blue', 'text-white', 'shadow-sm');
+                } else {
+                    btn.classList.add('bg-rbx-surface', 'text-rbx-muted', 'border-rbx-border');
+                    btn.classList.remove('bg-rbx-blue', 'text-white', 'shadow-sm');
+                }
+            });
+
+            renderAgentRoster();
+        }
+
+        function toggleAgentExclusion(agentId) {
+            playPop(460);
+            if (excludedAgents.has(agentId)) {
+                excludedAgents.delete(agentId);
+            } else {
+                excludedAgents.add(agentId);
+            }
+            renderAgentRoster();
+        }
+
+        function toggleAllAgents(enableAll) {
+            playPop(640);
+            const visibleAgents = AGENTS.filter(a => currentRoleFilter === 'ALL' || a.role === currentRoleFilter);
+            visibleAgents.forEach(a => {
+                if (enableAll) {
+                    excludedAgents.delete(a.id);
+                } else {
+                    excludedAgents.add(a.id);
+                }
+            });
+            renderAgentRoster();
+        }
+
+        function getAvailableAgents() {
+            return AGENTS.filter(agent => {
+                const matchRole = currentRoleFilter === 'ALL' || agent.role === currentRoleFilter;
+                const isIncluded = !excludedAgents.has(agent.id);
+                return matchRole && isIncluded;
+            });
+        }
+
+        function renderAgentRoster() {
+            const grid = document.getElementById('agentRosterGrid');
+            grid.innerHTML = '';
+
+            const filtered = AGENTS.filter(a => currentRoleFilter === 'ALL' || a.role === currentRoleFilter);
+            const availableCount = filtered.filter(a => !excludedAgents.has(a.id)).length;
+
+            document.getElementById('agentPoolCounter').innerHTML = 
+                `Sẵn sàng: <strong class="${availableCount === 0 ? 'text-rbx-red' : 'text-rbx-green'}">${availableCount}/${filtered.length}</strong>`;
+
+            filtered.forEach(agent => {
+                const isIncluded = !excludedAgents.has(agent.id);
+                const item = document.createElement('button');
+                item.onclick = () => toggleAgentExclusion(agent.id);
+                item.className = `p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                    isIncluded
+                    ? 'bg-rbx-surface hover:bg-rbx-hover border-rbx-border text-white shadow-sm'
+                    : 'bg-rbx-bg/60 border-rbx-border/40 opacity-50 text-rbx-muted'
+                }`;
+
+                let roleDot = 'bg-rbx-red';
+                if (agent.role === 'Initiator') roleDot = 'bg-rbx-gold';
+                if (agent.role === 'Controller') roleDot = 'bg-rbx-purple';
+                if (agent.role === 'Sentinel') roleDot = 'bg-rbx-green';
+
+                item.innerHTML = `
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full shrink-0 ${roleDot}"></span>
+                            <span class="font-bold text-xs truncate ${!isIncluded ? 'line-through' : ''}">${agent.name}</span>
+                        </div>
+                        <span class="text-[10px] text-rbx-muted block pl-3.5">${agent.role}</span>
+                    </div>
+                    <!-- Roblox Checkbox -->
+                    <div class="w-4 h-4 rounded-[5px] shrink-0 flex items-center justify-center border ${
+                        isIncluded ? 'bg-rbx-green border-rbx-green text-white' : 'bg-rbx-topbar border-rbx-border'
+                    }">
+                        ${isIncluded ? '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
+                    </div>
+                `;
+                grid.appendChild(item);
+            });
+        }
+
+        // ==========================================
+        // 6. QUAY ĐẶC VỤ (AGENT SPIN)
+        // ==========================================
+        function spinAgent(callbackAfter = null) {
+            if (isRollingAgent) return;
+            const pool = getAvailableAgents();
+
+            if (pool.length === 0) {
+                showToast('Hãy tích chọn ít nhất 1 Đặc vụ trong kho!', true);
+                playPop(240, 0.12);
+                return;
+            }
+
+            isRollingAgent = true;
+            const displayBox = document.getElementById('agentDisplayBox');
+            const rarityBar = document.getElementById('agentRarityBar');
+            const nameEl = document.getElementById('resAgentName');
+            const roleEl = document.getElementById('resAgentRoleBadge');
+            const originEl = document.getElementById('resAgentOrigin');
+            const quoteEl = document.getElementById('resAgentQuote');
+            const iconSlot = document.getElementById('resAgentIconSlot');
+            const initialsEl = document.getElementById('resAgentInitials');
+
+            displayBox.classList.remove('pop-reveal');
+            displayBox.classList.add('rolling-card');
+
+            let ticks = 0;
+            const totalTicks = 16;
+            const interval = setInterval(() => {
+                const temp = pool[Math.floor(Math.random() * pool.length)];
+                const theme = getRoleTheme(temp.role);
+
+                nameEl.textContent = temp.name;
+                roleEl.textContent = temp.role;
+                roleEl.className = `text-xs font-bold px-2.5 py-0.5 rounded-full border ${theme.badge}`;
+                rarityBar.className = `h-2 w-full ${theme.bar}`;
+                originEl.textContent = temp.origin;
+                iconSlot.className = theme.text;
+                iconSlot.innerHTML = theme.svg;
+                initialsEl.textContent = temp.name.slice(0, 3).toUpperCase();
+
+                playPop(420 + ticks * 20, 0.03);
+                ticks++;
+
+                if (ticks >= totalTicks) {
+                    clearInterval(interval);
+                    const finalAgent = pool[Math.floor(Math.random() * pool.length)];
+                    const finalTheme = getRoleTheme(finalAgent.role);
+
+                    nameEl.textContent = finalAgent.name;
+                    roleEl.textContent = finalAgent.role;
+                    roleEl.className = `text-xs font-bold px-2.5 py-0.5 rounded-full border ${finalTheme.badge}`;
+                    rarityBar.className = `h-2 w-full ${finalTheme.bar}`;
+                    originEl.textContent = finalAgent.origin;
+                    quoteEl.textContent = finalAgent.quote;
+                    iconSlot.className = finalTheme.text;
+                    iconSlot.innerHTML = finalTheme.svg;
+                    initialsEl.textContent = finalAgent.name.slice(0, 3).toUpperCase();
+
+                    displayBox.classList.remove('rolling-card');
+                    void displayBox.offsetWidth; // trigger reflow
+                    displayBox.classList.add('pop-reveal');
+                    isRollingAgent = false;
+
+                    // Đồng bộ đặc vụ vừa quay sang khu vực mua chiêu
+                    setActiveAgentForShop(finalAgent.id);
+
+                    if (!callbackAfter) {
+                        playRewardChime();
+                        addHistory({ type: 'AGENT', agent: finalAgent });
+                    } else {
+                        callbackAfter(finalAgent);
+                    }
+                }
+            }, 55);
+        }
+
+        // ==========================================
+        // 7. CỬA HÀNG SÚNG, GIÁP & MUA CHIÊU BẰNG TIỀN DƯ
+        // ==========================================
+        function populateShopAgentSelect() {
+            const select = document.getElementById('shopAgentSelect');
+            select.innerHTML = AGENTS.map(a =>
+                `<option value="${a.id}">${a.name} (${a.role})</option>`
+            ).join('');
+            select.value = selectedAgentId;
+            previewAgentAbilitiesOnHotbar(getSelectedAgent());
+        }
+
+        function getSelectedAgent() {
+            return AGENTS.find(a => a.id === selectedAgentId) || AGENTS[0];
+        }
+
+        function setActiveAgentForShop(agentId) {
+            selectedAgentId = agentId;
+            const select = document.getElementById('shopAgentSelect');
+            if (select) select.value = agentId;
+            previewAgentAbilitiesOnHotbar(getSelectedAgent());
+        }
+
+        function onShopAgentChange() {
+            playPop(580);
+            const select = document.getElementById('shopAgentSelect');
+            selectedAgentId = select.value;
+            // Nếu đang có tiền dư sau khi đã quay súng, tự động random lại chiêu cho đặc vụ mới chọn
+            if (currentGearState.gearCost > 0 || currentGearState.weapon.name !== 'Classic') {
+                rerollAbilitiesOnly(true);
+            } else {
+                previewAgentAbilitiesOnHotbar(getSelectedAgent());
+            }
+        }
+
+        function previewAgentAbilitiesOnHotbar(agent) {
+            const emptyPurchased = agent.abilities.map(ab => ({
+                ...ab,
+                count: ab.free,
+                purchasedCount: 0,
+                spent: 0
+            }));
+            renderAbilitiesHotbar(emptyPurchased);
+        }
+
+        function toggleSwitch(type) {
+            playPop(620);
+            if (type === 'smart') {
+                smartBuyEnabled = !smartBuyEnabled;
+                document.getElementById('toggleSmartBuy').classList.toggle('active', smartBuyEnabled);
+                document.getElementById('smartModeDesc').textContent = smartBuyEnabled
+                    ? 'Ưu tiên súng mạnh nhất & tiêu tối đa tiền dư (Tắt = Chaos RNG)'
+                    : 'Chế độ Chaos RNG: Random mọi khẩu súng & chiêu bất kỳ!';
+            } else if (type === 'shield') {
+                includeShieldsEnabled = !includeShieldsEnabled;
+                document.getElementById('toggleShields').classList.toggle('active', includeShieldsEnabled);
+            } else if (type === 'ability') {
+                includeAbilitiesEnabled = !includeAbilitiesEnabled;
+                document.getElementById('toggleAbilities').classList.toggle('active', includeAbilitiesEnabled);
+            }
+        }
+
+        function syncNavCredits() {
+            const raw = parseInt(document.getElementById('creditsInput').value, 10);
+            const val = isNaN(raw) ? 0 : Math.min(9000, Math.max(0, raw));
+            document.getElementById('navCreditsDisplay').textContent = val.toLocaleString();
+        }
+
+        function validateCredits() {
+            const input = document.getElementById('creditsInput');
+            let val = parseInt(input.value, 10);
+            if (isNaN(val) || val < 0) val = 0;
+            if (val > 9000) val = 9000;
+            input.value = val;
+            syncNavCredits();
+            return val;
+        }
+
+        function setCredits(amount) {
+            playPop(680);
+            document.getElementById('creditsInput').value = amount;
+            syncNavCredits();
+        }
+
+        function generateLoadoutCombo(budget) {
+            const availableShields = includeShieldsEnabled
+                ? SHIELDS.filter(s => s.price <= budget)
+                : [SHIELDS[0]];
+
+            let validCombos = [];
+
+            availableShields.forEach(shield => {
+                const remainingForGun = budget - shield.price;
+                const affordableWeapons = WEAPONS.filter(w => w.price <= remainingForGun);
+                affordableWeapons.forEach(weapon => {
+                    validCombos.push({
+                        weapon,
+                        shield,
+                        totalCost: weapon.price + shield.price
+                    });
+                });
+            });
+
+            if (validCombos.length === 0) {
+                return { weapon: WEAPONS[0], shield: SHIELDS[0], totalCost: 0 };
+            }
+
+            if (smartBuyEnabled) {
+                const maxSpend = Math.max(...validCombos.map(c => c.totalCost));
+                const threshold = Math.max(0, maxSpend - 900);
+                let topCombos = validCombos.filter(c => c.totalCost >= threshold);
+
+                if (budget >= 3900) {
+                    const heavyCombos = topCombos.filter(c => c.weapon.price >= 2050);
+                    if (heavyCombos.length > 0) topCombos = heavyCombos;
+                }
+
+                return topCombos[Math.floor(Math.random() * topCombos.length)];
+            } else {
+                return validCombos[Math.floor(Math.random() * validCombos.length)];
+            }
+        }
+
+        // Random mua từng lượt chiêu [C], [Q], [E] bằng tiền dư sau khi mua Súng & Giáp
+        function generateAbilitiesWithLeftover(agent, leftoverCredits) {
+            const state = agent.abilities.map(ab => ({
+                ...ab,
+                count: ab.free,
+                purchasedCount: 0,
+                spent: 0
+            }));
+
+            if (!includeAbilitiesEnabled || leftoverCredits <= 0) {
+                return { abilities: state, abilitySpent: 0 };
+            }
+
+            let remaining = leftoverCredits;
+            let abilitySpent = 0;
+
+            // Vòng lặp mua ngẫu nhiên từng lượt chiêu còn slot và đủ tiền
+            while (true) {
+                const affordablePool = state.filter(item =>
+                    item.cost > 0 &&
+                    item.count < item.max &&
+                    item.cost <= remaining
+                );
+
+                if (affordablePool.length === 0) break;
+
+                // Nếu tắt Smart Buy (chế độ Chaos), có 25% xác suất dừng sớm để giữ tiền
+                if (!smartBuyEnabled && abilitySpent > 0 && Math.random() < 0.25) {
+                    break;
+                }
+
+                const picked = affordablePool[Math.floor(Math.random() * affordablePool.length)];
+                picked.count += 1;
+                picked.purchasedCount += 1;
+                picked.spent += picked.cost;
+                remaining -= picked.cost;
+                abilitySpent += picked.cost;
+            }
+
+            return { abilities: state, abilitySpent };
+        }
+
+        function renderAbilitiesHotbar(abilitiesList) {
+            const slotMap = {
+                'C': { card: 'slotAbilityCCard', name: 'resAbilityCName', unit: 'resAbilityCUnit', qty: 'resAbilityCQty', price: 'resAbilityCPrice' },
+                'Q': { card: 'slotAbilityQCard', name: 'resAbilityQName', unit: 'resAbilityQUnit', qty: 'resAbilityQQty', price: 'resAbilityQPrice' },
+                'E': { card: 'slotAbilityECard', name: 'resAbilityEName', unit: 'resAbilityEUnit', qty: 'resAbilityEQty', price: 'resAbilityEPrice' }
+            };
+
+            abilitiesList.forEach(ab => {
+                const ids = slotMap[ab.key];
+                if (!ids) return;
+
+                const cardEl = document.getElementById(ids.card);
+                const nameEl = document.getElementById(ids.name);
+                const unitEl = document.getElementById(ids.unit);
+                const qtyEl = document.getElementById(ids.qty);
+                const priceEl = document.getElementById(ids.price);
+
+                nameEl.textContent = ab.name;
+                qtyEl.textContent = `${ab.count}/${ab.max}`;
+
+                if (ab.cost === 0) {
+                    unitEl.textContent = 'Signature';
+                    priceEl.textContent = 'FREE';
+                    priceEl.className = 'inline-block text-[11px] font-extrabold text-rbx-gold bg-rbx-bg px-2 py-0.5 rounded-full';
+                    cardEl.classList.remove('border-rbx-purple', 'opacity-60');
+                    cardEl.classList.add('border-rbx-gold/60');
+                } else {
+                    unitEl.textContent = `${ab.cost} ¤/lượt`;
+                    if (ab.count > 0) {
+                        priceEl.textContent = ab.spent > 0 ? `${ab.spent} ¤` : 'FREE (1)';
+                        priceEl.className = 'inline-block text-[11px] font-extrabold text-rbx-purple bg-rbx-bg px-2 py-0.5 rounded-full';
+                        cardEl.classList.remove('border-rbx-border', 'opacity-60');
+                        cardEl.classList.add('border-rbx-purple');
+                    } else {
+                        priceEl.textContent = '0 ¤';
+                        priceEl.className = 'inline-block text-[11px] font-extrabold text-rbx-muted bg-rbx-bg px-2 py-0.5 rounded-full';
+                        cardEl.classList.remove('border-rbx-purple');
+                        cardEl.classList.add('border-rbx-border', 'opacity-60');
+                    }
+                }
+            });
+        }
+
+        function updateHotbarUI(weapon, shield, budget, gearCost, abilitiesResult = null) {
+            const pCard = document.getElementById('slotPrimaryCard');
+            const sCard = document.getElementById('slotSidearmCard');
+            const aCard = document.getElementById('slotArmorCard');
+
+            const pName = document.getElementById('resPrimaryName');
+            const pCat = document.getElementById('resPrimaryCat');
+            const pPrice = document.getElementById('resPrimaryPrice');
+
+            const sName = document.getElementById('resSidearmName');
+            const sPrice = document.getElementById('resSidearmPrice');
+
+            const shName = document.getElementById('resShieldName');
+            const shSub = document.getElementById('resShieldSub');
+            const shPrice = document.getElementById('resShieldPrice');
+
+            // Phân tách hiển thị ô [1] Primary và ô [2] Sidearm chuẩn Valorant
+            if (weapon.isSidearm) {
+                pName.textContent = 'Trống';
+                pName.className = 'font-bold text-sm text-rbx-muted leading-tight';
+                pCat.textContent = 'No Primary';
+                pPrice.textContent = '0 ¤';
+                pCard.classList.remove('border-rbx-gold', 'border-rbx-blue');
+                pCard.classList.add('border-rbx-border', 'opacity-65');
+
+                sName.textContent = weapon.name;
+                sPrice.textContent = `${weapon.price.toLocaleString()} ¤`;
+                sCard.classList.remove('border-rbx-border');
+                sCard.classList.add('border-rbx-green');
+            } else {
+                pName.textContent = weapon.name;
+                pName.className = 'font-extrabold text-sm text-white leading-tight truncate';
+                pCat.textContent = weapon.category;
+                pPrice.textContent = `${weapon.price.toLocaleString()} ¤`;
+                pCard.classList.remove('border-rbx-border', 'opacity-65');
+                pCard.classList.add(weapon.price >= 2900 ? 'border-rbx-gold' : 'border-rbx-blue');
+
+                // Default Classic ở ô [2]
+                sName.textContent = 'Classic';
+                sPrice.textContent = 'Miễn phí';
+                sCard.classList.remove('border-rbx-green');
+                sCard.classList.add('border-rbx-border');
+            }
+
+            // Ô [3] Giáp
+            shName.textContent = shield.name;
+            shSub.textContent = shield.sub;
+            shPrice.textContent = `${shield.price.toLocaleString()} ¤`;
+            aCard.classList.remove('border-rbx-border', 'border-rbx-blue', 'border-rbx-purple');
+            if (shield.price === 1000) aCard.classList.add('border-rbx-blue');
+            else if (shield.price > 0) aCard.classList.add('border-rbx-purple');
+            else aCard.classList.add('border-rbx-border');
+
+            // Ô [4], [5], [6] Chiêu thức
+            const abData = abilitiesResult || generateAbilitiesWithLeftover(getSelectedAgent(), budget - gearCost);
+            renderAbilitiesHotbar(abData.abilities);
+
+            // Bảng phân tích chi tiêu chi tiết
+            const afterGear = Math.max(0, budget - gearCost);
+            const totalSpent = gearCost + abData.abilitySpent;
+            const finalRemaining = Math.max(0, budget - totalSpent);
+
+            document.getElementById('resGearSpent').textContent = `${gearCost.toLocaleString()} ¤`;
+            document.getElementById('resAfterGear').textContent = `${afterGear.toLocaleString()} ¤`;
+            document.getElementById('resAbilitySpent').textContent = `${abData.abilitySpent.toLocaleString()} ¤`;
+            document.getElementById('resTotalSpent').textContent = `${totalSpent.toLocaleString()} ¤`;
+            document.getElementById('resRemaining').textContent = `${finalRemaining.toLocaleString()} ¤`;
+
+            const tierTag = document.getElementById('loadoutTierTag');
+            if (totalSpent >= 3900) {
+                tierTag.textContent = 'FULL BUY';
+                tierTag.className = 'text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-rbx-gold/20 text-rbx-gold';
+            } else if (totalSpent >= 2000) {
+                tierTag.textContent = 'FORCE / HALF';
+                tierTag.className = 'text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-rbx-blue/20 text-rbx-blue';
+            } else {
+                tierTag.textContent = 'ECO / PISTOL';
+                tierTag.className = 'text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-rbx-green/20 text-rbx-green';
+            }
+
+            return {
+                afterGear,
+                abilitySpent: abData.abilitySpent,
+                abilities: abData.abilities,
+                totalSpent,
+                finalRemaining
+            };
+        }
+
+        // Quay lại chỉ phần Chiêu bằng tiền dư hiện tại (giữ nguyên Súng & Giáp)
+        function rerollAbilitiesOnly(silent = false) {
+            if (isRollingLoadout) return;
+            const budget = validateCredits();
+            const agent = getSelectedAgent();
+            const gearCost = currentGearState.gearCost;
+            const leftover = Math.max(0, budget - gearCost);
+
+            const abResult = generateAbilitiesWithLeftover(agent, leftover);
+            const summary = updateHotbarUI(
+                currentGearState.weapon,
+                currentGearState.shield,
+                budget,
+                gearCost,
+                abResult
+            );
+
+            const box = document.getElementById('loadoutDisplayBox');
+            box.classList.remove('pop-reveal');
+            void box.offsetWidth;
+            box.classList.add('pop-reveal');
+
+            if (!silent) {
+                playRewardChime();
+                showToast(`Đã quay lại chiêu của ${agent.name} với ${leftover.toLocaleString()} ¤ tiền dư!`);
+                addHistory({
+                    type: 'LOADOUT',
+                    loadout: {
+                        agentName: agent.name,
+                        budget,
+                        weapon: currentGearState.weapon,
+                        shield: currentGearState.shield,
+                        abilities: summary.abilities,
+                        totalCost: summary.totalSpent,
+                        remaining: summary.finalRemaining
+                    }
+                });
+            }
+        }
+
+        function spinLoadout(callbackAfter = null) {
+            if (isRollingLoadout) return;
+            const budget = validateCredits();
+
+            isRollingLoadout = true;
+            const box = document.getElementById('loadoutDisplayBox');
+            box.classList.remove('pop-reveal');
+            box.classList.add('rolling-card');
+
+            let ticks = 0;
+            const totalTicks = 14;
+            const interval = setInterval(() => {
+                const randW = WEAPONS[Math.floor(Math.random() * WEAPONS.length)];
+                const randS = SHIELDS[Math.floor(Math.random() * SHIELDS.length)];
+                updateHotbarUI(randW, randS, budget, randW.price + randS.price);
+
+                playPop(480 + ticks * 22, 0.03);
+                ticks++;
+
+                if (ticks >= totalTicks) {
+                    clearInterval(interval);
+                    const result = generateLoadoutCombo(budget);
+                    const activeAgent = getSelectedAgent();
+                    const abResult = generateAbilitiesWithLeftover(activeAgent, budget - result.totalCost);
+
+                    currentGearState = {
+                        budget,
+                        weapon: result.weapon,
+                        shield: result.shield,
+                        gearCost: result.totalCost
+                    };
+
+                    const summary = updateHotbarUI(
+                        result.weapon,
+                        result.shield,
+                        budget,
+                        result.totalCost,
+                        abResult
+                    );
+
+                    box.classList.remove('rolling-card');
+                    void box.offsetWidth;
+                    box.classList.add('pop-reveal');
+                    isRollingLoadout = false;
+
+                    const loadoutResult = {
+                        agentName: activeAgent.name,
+                        budget,
+                        weapon: result.weapon,
+                        shield: result.shield,
+                        abilities: summary.abilities,
+                        totalCost: summary.totalSpent,
+                        remaining: summary.finalRemaining
+                    };
+
+                    if (!callbackAfter) {
+                        playRewardChime();
+                        addHistory({ type: 'LOADOUT', loadout: loadoutResult });
+                    } else {
+                        callbackAfter(loadoutResult);
+                    }
+                }
+            }, 50);
+        }
+
+        // ==========================================
+        // 8. QUAY TẤT CẢ (AGENT + HOTBAR CÙNG LÚC)
+        // ==========================================
+        function rollAll() {
+            if (isRollingAgent || isRollingLoadout) return;
+            const pool = getAvailableAgents();
+            if (pool.length === 0) {
+                showToast('Hãy tích chọn ít nhất 1 Đặc vụ trong kho!', true);
+                return;
+            }
+
+            // Chọn trước đặc vụ kết quả để đồng bộ ngay bộ chiêu khi quay cùng lúc
+            const chosenAgent = pool[Math.floor(Math.random() * pool.length)];
+            setActiveAgentForShop(chosenAgent.id);
+
+            let finishedAgent = null;
+            let finishedLoadout = null;
+
+            const checkBothDone = () => {
+                if (finishedAgent && finishedLoadout) {
+                    // Đảm bảo đồng bộ đúng đặc vụ cuối cùng
+                    setActiveAgentForShop(finishedAgent.id);
+                    const budget = validateCredits();
+                    const abResult = generateAbilitiesWithLeftover(finishedAgent, budget - currentGearState.gearCost);
+                    const summary = updateHotbarUI(
+                        currentGearState.weapon,
+                        currentGearState.shield,
+                        budget,
+                        currentGearState.gearCost,
+                        abResult
+                    );
+                    finishedLoadout.agentName = finishedAgent.name;
+                    finishedLoadout.abilities = summary.abilities;
+                    finishedLoadout.totalCost = summary.totalSpent;
+                    finishedLoadout.remaining = summary.finalRemaining;
+
+                    playRewardChime();
+                    addHistory({
+                        type: 'FULL',
+                        agent: finishedAgent,
+                        loadout: finishedLoadout
+                    });
+                }
+            };
+
+            spinAgent((agentRes) => {
+                finishedAgent = agentRes;
+                checkBothDone();
+            });
+
+            spinLoadout((loadoutRes) => {
+                finishedLoadout = loadoutRes;
+                checkBothDone();
+            });
+        }
+
+        // ==========================================
+        // 9. NHẬT KÝ HOẠT ĐỘNG (ACTIVITY FEED)
+        // ==========================================
+        function formatAbilitySummary(abilities) {
+            if (!abilities) return '';
+            const bought = abilities.filter(a => a.count > 0);
+            if (bought.length === 0) return 'Không mua chiêu';
+            return bought.map(a => `[${a.key}] ${a.name} x${a.count}`).join(' • ');
+        }
+
+        function addHistory(entry) {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            historyLog.unshift({ ...entry, time: timeStr });
+            if (historyLog.length > 12) historyLog.pop();
+            renderHistory();
+        }
+
+        function clearHistory() {
+            playPop(340);
+            historyLog = [];
+            renderHistory();
+            showToast('Đã dọn sạch nhật ký quay');
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            if (historyLog.length === 0) {
+                list.innerHTML = `
+                    <div class="col-span-full text-center py-6 text-xs text-rbx-muted bg-rbx-topbar rounded-xl border border-rbx-border">
+                        Chưa có hoạt động nào. Nhấn nút quay màu xanh phía trên để bắt đầu!
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = historyLog.map(item => {
+                if (item.type === 'FULL') {
+                    const theme = getRoleTheme(item.agent.role);
+                    const abText = formatAbilitySummary(item.loadout.abilities);
+                    return `
+                        <div class="bg-rbx-topbar border border-rbx-border rounded-xl p-3.5 flex flex-col justify-between gap-2">
+                            <div class="flex items-center justify-between text-[11px] text-rbx-muted">
+                                <span class="font-bold text-rbx-green">★ Combo Toàn Tập</span>
+                                <span>${item.time}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="font-badge text-lg text-white">${item.agent.name}</span>
+                                <span class="text-[11px] font-bold px-2 py-0.5 rounded-full border ${theme.badge}">${item.agent.role}</span>
+                            </div>
+                            <div class="text-xs text-rbx-muted bg-rbx-surface px-2.5 py-1.5 rounded-lg flex justify-between items-center">
+                                <span><strong class="text-white">${item.loadout.weapon.name}</strong> + ${item.loadout.shield.name}</span>
+                                <span class="font-extrabold text-rbx-green">${item.loadout.totalCost}¤</span>
+                            </div>
+                            <div class="text-[11px] text-rbx-purple truncate font-semibold">${abText}</div>
+                        </div>
+                    `;
+                } else if (item.type === 'AGENT') {
+                    const theme = getRoleTheme(item.agent.role);
+                    return `
+                        <div class="bg-rbx-topbar border border-rbx-border rounded-xl p-3.5 flex flex-col justify-between gap-2">
+                            <div class="flex items-center justify-between text-[11px] text-rbx-muted">
+                                <span class="font-bold text-rbx-blue">● Quay Đặc Vụ</span>
+                                <span>${item.time}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="font-badge text-lg text-white">${item.agent.name}</span>
+                                <span class="text-[11px] font-bold px-2 py-0.5 rounded-full border ${theme.badge}">${item.agent.role}</span>
+                            </div>
+                            <div class="text-[11px] text-rbx-muted">${item.agent.origin}</div>
+                        </div>
+                    `;
+                } else {
+                    const abText = formatAbilitySummary(item.loadout.abilities);
+                    return `
+                        <div class="bg-rbx-topbar border border-rbx-border rounded-xl p-3.5 flex flex-col justify-between gap-2">
+                            <div class="flex items-center justify-between text-[11px] text-rbx-muted">
+                                <span class="font-bold text-rbx-gold">■ Trang Bị (${item.loadout.agentName || 'Agent'})</span>
+                                <span>${item.time}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="font-extrabold text-base text-white">${item.loadout.weapon.name}</span>
+                                <span class="text-xs font-extrabold text-rbx-green bg-rbx-surface px-2 py-0.5 rounded-full">${item.loadout.totalCost}¤ / ${item.loadout.budget}¤</span>
+                            </div>
+                            <div class="text-[11px] text-rbx-purple truncate font-semibold">${abText}</div>
+                            <div class="text-xs text-rbx-muted flex justify-between">
+                                <span>${item.loadout.shield.name}</span>
+                                <span>Dư cuối: <strong class="text-white">${item.loadout.remaining}¤</strong></span>
+                            </div>
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+
+        // Khởi tạo ban đầu
+        window.addEventListener('DOMContentLoaded', () => {
+            renderAgentRoster();
+            populateShopAgentSelect();
+            syncNavCredits();
+        });
+    </script>
+</body>
+</html>
